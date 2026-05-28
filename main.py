@@ -104,7 +104,6 @@ while True:
                         if duplicate_id:
                             print('Já existe um animal com este ID.')
                         else:
-                            # Validação manual de float (sem isdigit)
                             v_weight = True
                             dot_c = 0
                             if aweight == "" or aweight == ".": v_weight = False
@@ -112,7 +111,7 @@ while True:
                             while k < len(aweight):
                                 char = aweight[k]
                                 if char == ".": dot_c = dot_c + 1
-                                elif not (char >= "0" and char <= "9"):
+                                elif not char.isdigit():
                                     v_weight = False
                                     break
                                 k = k + 1
@@ -126,7 +125,7 @@ while True:
                                 k = 0
                                 while k < len(aprice_str):
                                     if aprice_str[k] == ".": dot_c = dot_c + 1
-                                    elif not (aprice_str[k] >= "0" and aprice_str[k] <= "9"): v_aprice = False; break
+                                    elif not aprice_str[k].isdigit(): v_aprice = False; break
                                     k = k + 1
                                 if dot_c > 1: v_aprice = False
 
@@ -172,7 +171,7 @@ while True:
                     i = 0
                     while i < len(animals):
                         if animals[i][2] == aid:
-                            del animals[i]
+                            animals.pop(i)
                             removed = True
                             break
                         else:
@@ -214,7 +213,7 @@ while True:
                     while k < len(liters_str):
                         char = liters_str[k]
                         if char == ".": dot_c = dot_c + 1
-                        elif not (char >= "0" and char <= "9"):
+                        elif not char.isdigit():
                             v_liters = False
                             break
                         k = k + 1
@@ -227,7 +226,7 @@ while True:
                         k = 0
                         while k < len(mprice_str):
                             if mprice_str[k] == ".": dot_c = dot_c + 1
-                            elif not (mprice_str[k] >= "0" and mprice_str[k] <= "9"): v_mprice = False; break
+                            elif not mprice_str[k].isdigit(): v_mprice = False; break
                             k = k + 1
                         if dot_c > 1: v_mprice = False
 
@@ -267,7 +266,7 @@ while True:
                     else:
                         k = 0
                         while k < len(units_str):
-                            if not (units_str[k] >= "0" and units_str[k] <= "9"): v_all = False; break
+                            if not units_str[k].isdigit(): v_all = False; break
                             k = k + 1
                     
                     # Valida peso e preço (float)
@@ -277,7 +276,7 @@ while True:
                         k = 0
                         while k < len(val_str):
                             if val_str[k] == ".": dot_c = dot_c + 1
-                            elif not (val_str[k] >= "0" and val_str[k] <= "9"): v_all = False; break
+                            elif not val_str[k].isdigit(): v_all = False; break
                             k = k + 1
                         if dot_c > 1: v_all = False; break
                     
@@ -300,7 +299,7 @@ while True:
                                 k = 0
                                 while k < len(m_unit_str):
                                     if m_unit_str[k] == ".": dot_c = dot_c + 1
-                                    elif not (m_unit_str[k] >= "0" and m_unit_str[k] <= "9"): v_m = False; break
+                                    elif not m_unit_str[k].isdigit(): v_m = False; break
                                     k = k + 1
                                 if dot_c > 1: v_m = False
                             
@@ -310,8 +309,8 @@ while True:
                                 # Verificar estoque
                                 found = False
                                 i = 0
-                                while i < len(milk_stock):
-                                    if milk_stock[i][0] == logged_in:
+                                while i < len(milk_stock): 
+                                    if milk_stock[i][0] == logged_in: 
                                         if milk_stock[i][1] >= milk_total:
                                             milk_stock[i][1] = milk_stock[i][1] - milk_total
                                             found = True
@@ -472,7 +471,7 @@ while True:
                         k = 0
                         while k < len(qty_str):
                             if qty_str[k] == ".": dot_c = dot_c + 1
-                            elif not (qty_str[k] >= "0" and qty_str[k] <= "9"): v_qty = False; break
+                            elif not qty_str[k].isdigit(): v_qty = False; break
                             k = k + 1
                         if dot_c > 1: v_qty = False
 
@@ -517,11 +516,7 @@ while True:
                                                 v_num = True
                                                 for part in [d_parts[0], d_parts[1], d_parts[2], t_parts[0], t_parts[1]]:
                                                     if part == "": v_num = False; break
-                                                    k_part = 0
-                                                    while k_part < len(part):
-                                                        if not (part[k_part] >= "0" and part[k_part] <= "9"): v_num = False; break
-                                                        k_part = k_part + 1
-                                                    if not v_num: break
+                                                    if not part.isdigit(): v_num = False; break
                                                 
                                                 if v_num:
                                                     dd = int(d_parts[0]); mm = int(d_parts[1]); yy = int(d_parts[2])
@@ -578,11 +573,7 @@ while True:
                                     v_num = True
                                     for part in [d_parts[0], d_parts[1], d_parts[2], t_parts[0], t_parts[1]]:
                                         if part == "": v_num = False; break
-                                        k_part = 0
-                                        while k_part < len(part):
-                                            if not (part[k_part] >= "0" and part[k_part] <= "9"): v_num = False; break
-                                            k_part = k_part + 1
-                                        if not v_num: break
+                                        if not part.isdigit(): v_num = False; break
                                     
                                     if v_num:
                                         dd = int(d_parts[0]); mm = int(d_parts[1]); yy = int(d_parts[2])
@@ -629,7 +620,7 @@ while True:
                         k = 0
                         while k < len(qty_str):
                             if qty_str[k] == ".": dot_c = dot_c + 1
-                            elif not (qty_str[k] >= "0" and qty_str[k] <= "9"): v_qty = False; break
+                            elif not qty_str[k].isdigit(): v_qty = False; break
                             k = k + 1
                         if dot_c > 1: v_qty = False
 
@@ -649,11 +640,7 @@ while True:
                                     v_num = True
                                     for part in [d_parts[0], d_parts[1], d_parts[2], t_parts[0], t_parts[1]]:
                                         if part == "": v_num = False; break
-                                        k_part = 0
-                                        while k_part < len(part):
-                                            if not (part[k_part] >= "0" and part[k_part] <= "9"): v_num = False; break
-                                            k_part = k_part + 1
-                                        if not v_num: break
+                                        if not part.isdigit(): v_num = False; break
 
                                     if v_num:
                                         dd = int(d_parts[0]); mm = int(d_parts[1]); yy = int(d_parts[2])
