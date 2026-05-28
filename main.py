@@ -86,6 +86,7 @@ while True:
                     if atype is not None:
                         aid = input("ID (brinco/número): ").strip()
                         aweight = input("Peso (kg): ").strip()
+                        aprice_str = input("Preço de venda (R$): ").strip()
                         raw_status = input("Status: ").strip()
                         raw_status_lower = raw_status.lower()
                         raw_status_lower = raw_status_lower.replace('ú', 'u').replace('í', 'i').replace('ã', 'a').replace('ç', 'c').replace('ó', 'o').replace('é', 'e')
@@ -103,8 +104,37 @@ while True:
                         if duplicate_id:
                             print('Já existe um animal com este ID.')
                         else:
-                            animals.append([logged_in, atype, aid, aweight, astatus])
-                            print('Animal cadastrado!')
+                            # Validação manual de float (sem isdigit)
+                            v_weight = True
+                            dot_c = 0
+                            if aweight == "" or aweight == ".": v_weight = False
+                            k = 0
+                            while k < len(aweight):
+                                char = aweight[k]
+                                if char == ".": dot_c = dot_c + 1
+                                elif not (char >= "0" and char <= "9"):
+                                    v_weight = False
+                                    break
+                                k = k + 1
+                            if dot_c > 1: v_weight = False
+
+                            # Validação manual preço animal
+                            v_aprice = True
+                            dot_c = 0
+                            if aprice_str == "" or aprice_str == ".": v_aprice = False
+                            else:
+                                k = 0
+                                while k < len(aprice_str):
+                                    if aprice_str[k] == ".": dot_c = dot_c + 1
+                                    elif not (aprice_str[k] >= "0" and aprice_str[k] <= "9"): v_aprice = False; break
+                                    k = k + 1
+                                if dot_c > 1: v_aprice = False
+
+                            if v_weight and v_aprice:
+                                animals.append([logged_in, atype, aid, aweight, astatus, float(aprice_str)])
+                                print('Animal cadastrado com preço de R$ ' + aprice_str)
+                            else:
+                                print('Peso ou Preço inválido.')
 
                 elif subchoice == '2':
                     aid = input("ID do animal: ").strip()
@@ -143,11 +173,13 @@ while True:
                     while i < len(animals):
                         if animals[i][2] == aid:
                             del animals[i]
-                            print("Removido!")
                             removed = True
                             break
-                        i = i + 1
-                    if not removed:
+                        else:
+                            i = i + 1
+                    if removed:
+                        print("Removido!")
+                    else:
                         print("Animal não encontrado.")
 
                 elif subchoice == '5':
@@ -157,7 +189,9 @@ while True:
                         print('\n***** Lista de Animais *****')
                         i = 0
                         while i < len(animals):
-                            print("Tipo: " + animals[i][1] + ", Peso: " + animals[i][3] + " kg, Status: " + animals[i][4] + " (ADM: " + animals[i][0] + ")")
+                            # Mostrar apenas animais do ADM logado
+                            if animals[i][0] == logged_in:
+                                print("Tipo: " + animals[i][1] + ", Peso: " + animals[i][3] + " kg, Status: " + animals[i][4] + ", Preço: R$ " + str(animals[i][5]))
                             i = i + 1
 
                 else:
@@ -167,73 +201,166 @@ while True:
                 print("\n***** Gerenciar Produção *****")
                 print("1. Adicionar Leite")
                 print("2. Adicionar Produto Derivado")
+                print("3. Listar Produtos e Leite")
                 subchoice = input("Escolha: ").strip()
 
                 if subchoice == '1':
                     liters_str = input("Litros de leite: ").strip()
-                    ok = True
-                    if liters_str == '':
-                        ok = False
-                    if ok:
-                        if liters_str.count('-') > 0 or liters_str.count('.') > 1:
-                            ok = False
-                    i = 0
-                    while ok and i < len(liters_str):
-                        ch = liters_str[i]
-                        if ch != '.' and (ch < '0' or ch > '9'):
-                            ok = False
-                        i = i + 1
-                    if ok:
+                    mprice_str = input("Preço por litro (R$): ").strip()
+                    v_liters = True
+                    dot_c = 0
+                    if liters_str == "" or liters_str == ".": v_liters = False
+                    k = 0
+                    while k < len(liters_str):
+                        char = liters_str[k]
+                        if char == ".": dot_c = dot_c + 1
+                        elif not (char >= "0" and char <= "9"):
+                            v_liters = False
+                            break
+                        k = k + 1
+                    if dot_c > 1: v_liters = False
+
+                    v_mprice = True
+                    dot_c = 0
+                    if mprice_str == "" or mprice_str == ".": v_mprice = False
+                    else:
+                        k = 0
+                        while k < len(mprice_str):
+                            if mprice_str[k] == ".": dot_c = dot_c + 1
+                            elif not (mprice_str[k] >= "0" and mprice_str[k] <= "9"): v_mprice = False; break
+                            k = k + 1
+                        if dot_c > 1: v_mprice = False
+
+                    if v_liters and v_mprice:
                         liters = float(liters_str)
+                        mprice = float(mprice_str)
                         if liters > 0:
                             found = False
                             i = 0
                             while i < len(milk_stock):
                                 if milk_stock[i][0] == logged_in:
                                     milk_stock[i][1] = milk_stock[i][1] + liters
+                                    milk_stock[i][2] = mprice # Atualiza preço
                                     found = True
                                     break
                                 i = i + 1
                             if not found:
-                                milk_stock.append([logged_in, liters])
-                            print("Estoque de leite: " + str(liters) + " L adicionados")
+                                milk_stock.append([logged_in, liters, mprice])
+                            print("Estoque de leite atualizado!")
                         else:
                             print('Quantidade deve ser maior que zero.')
                     else:
-                        print('Valor inválido para litros.')
+                        print('Valores inválidos.')
 
                 elif subchoice == '2':
                     name = input("Nome do produto: ").strip()
-                    weight_str = input("Peso (kg): ").strip()
-                    value_str = input("Valor de venda: ").strip()
-                    ok = True
-                    if weight_str == '' or value_str == '':
-                        ok = False
-                    if ok:
-                        if weight_str.count('-') > 0 or weight_str.count('.') > 1 or value_str.count('-') > 0 or value_str.count('.') > 1:
-                            ok = False
-                    i = 0
-                    while ok and i < len(weight_str):
-                        ch = weight_str[i]
-                        if ch != '.' and (ch < '0' or ch > '9'):
-                            ok = False
-                        i = i + 1
-                    i = 0
-                    while ok and i < len(value_str):
-                        ch = value_str[i]
-                        if ch != '.' and (ch < '0' or ch > '9'):
-                            ok = False
-                        i = i + 1
-                    if ok:
-                        weight = float(weight_str)
-                        value = float(value_str)
-                        if weight > 0 and value >= 0:
-                            products.append([logged_in, name, weight, value])
-                            print("Produto adicionado!")
-                        else:
-                            print('Peso deve ser maior que zero e valor não pode ser negativo.')
+                    units_str = input("Quantidade de unidades: ").strip()
+                    w_per_unit_str = input("Peso por unidade (kg): ").strip()
+                    price_str = input("Preço de venda (R$ por kg): ").strip()
+                    derived = input("É derivado de leite? (s/n): ").strip().lower()
+                    
+                    # Validação manual de todas as entradas
+                    v_all = True
+                    
+                    # Valida unidades (inteiro)
+                    if units_str == "": v_all = False
                     else:
-                        print('Valor inválido para peso ou valor.')
+                        k = 0
+                        while k < len(units_str):
+                            if not (units_str[k] >= "0" and units_str[k] <= "9"): v_all = False; break
+                            k = k + 1
+                    
+                    # Valida peso e preço (float)
+                    for val_str in [w_per_unit_str, price_str]:
+                        dot_c = 0
+                        if val_str == "" or val_str == ".": v_all = False; break
+                        k = 0
+                        while k < len(val_str):
+                            if val_str[k] == ".": dot_c = dot_c + 1
+                            elif not (val_str[k] >= "0" and val_str[k] <= "9"): v_all = False; break
+                            k = k + 1
+                        if dot_c > 1: v_all = False; break
+                    
+                    if v_all:
+                        units = int(units_str)
+                        w_unit = float(w_per_unit_str)
+                        price = float(price_str)
+                        total_weight = units * w_unit
+                        
+                        can_add = True
+                        milk_total = 0.0
+                        
+                        if derived == 's':
+                            m_unit_str = input("Litros de leite por unidade: ").strip()
+                            # Validação manual leite
+                            v_m = True
+                            dot_c = 0
+                            if m_unit_str == "" or m_unit_str == ".": v_m = False
+                            else:
+                                k = 0
+                                while k < len(m_unit_str):
+                                    if m_unit_str[k] == ".": dot_c = dot_c + 1
+                                    elif not (m_unit_str[k] >= "0" and m_unit_str[k] <= "9"): v_m = False; break
+                                    k = k + 1
+                                if dot_c > 1: v_m = False
+                            
+                            if v_m:
+                                m_unit = float(m_unit_str)
+                                milk_total = units * m_unit
+                                # Verificar estoque
+                                found = False
+                                i = 0
+                                while i < len(milk_stock):
+                                    if milk_stock[i][0] == logged_in:
+                                        if milk_stock[i][1] >= milk_total:
+                                            milk_stock[i][1] = milk_stock[i][1] - milk_total
+                                            found = True
+                                        else:
+                                            print('Leite insuficiente para produzir ' + str(units) + ' unidades.')
+                                            can_add = False
+                                        break
+                                    i = i + 1
+                                if not found and milk_total > 0:
+                                    print('Não há leite para produzir.')
+                                    can_add = False
+                            else:
+                                print('Quantidade de leite inválida.')
+                                can_add = False
+
+                        if can_add:
+                            products.append([logged_in, name, total_weight, price, int(derived == 's'), milk_total])
+                            print("Produção concluída: " + str(total_weight) + " kg de " + name + " adicionados!")
+                    else:
+                        print('Entradas inválidas. Use apenas números.')
+
+                elif subchoice == '3':
+                    print("\n***** Estoque de Produção (Seu) *****")
+                    # Leite
+                    found_milk = False
+                    i = 0
+                    while i < len(milk_stock):
+                        if milk_stock[i][0] == logged_in:
+                            print("Leite: " + str(milk_stock[i][1]) + " L (Preço: R$ " + str(milk_stock[i][2]) + "/L)")
+                            found_milk = True
+                            break
+                        i = i + 1
+                    if not found_milk:
+                        print("Leite: 0 L")
+                    
+                    # Produtos
+                    print("Produtos:")
+                    found_prod = False
+                    i = 0
+                    while i < len(products):
+                        if products[i][0] == logged_in:
+                            d_str = ""
+                            if products[i][4] == 1:
+                                d_str = " (Derivado)"
+                            print("- " + products[i][1] + ": " + str(products[i][2]) + " kg, R$ " + str(products[i][3]) + d_str)
+                            found_prod = True
+                        i = i + 1
+                    if not found_prod:
+                        print("- Nenhum produto cadastrado.")
 
                 else:
                     print("Opção inválida.")
@@ -243,28 +370,31 @@ while True:
                 animal_count = 0
                 i = 0
                 while i < len(animals):
-                    animal_count = animal_count + 1
+                    if animals[i][0] == logged_in:
+                        animal_count = animal_count + 1
                     i = i + 1
                 print("Total de animais: " + str(animal_count))
                 milk_amount = 0
                 i = 0
                 while i < len(milk_stock):
-                    milk_amount = milk_amount + milk_stock[i][1]
+                    if milk_stock[i][0] == logged_in:
+                        milk_amount = milk_amount + milk_stock[i][1]
                     i = i + 1
                 print("Estoque de leite: " + str(milk_amount) + " L")
                 total_prod_weight = 0
                 i = 0
                 while i < len(products):
-                    total_prod_weight = total_prod_weight + products[i][2]
+                    if products[i][0] == logged_in:
+                        total_prod_weight = total_prod_weight + products[i][2]
                     i = i + 1
                 print("Peso total de produtos: " + str(total_prod_weight) + " kg")
                 total_revenue = 0
                 i = 0
                 while i < len(purchases):
-                    if purchases[i][3] == 'produto' and len(purchases[i]) > 5:
-                        total_revenue = total_revenue + purchases[i][2] * purchases[i][5]
+                    if purchases[i][4] == logged_in and len(purchases[i]) > 5:
+                        total_revenue = total_revenue + (purchases[i][2] * purchases[i][5])
                     i = i + 1
-                print("Receita total de produtos vendidos: R$ " + "{:.2f}".format(total_revenue))
+                print("Receita Total (Produtos, Animais e Leite): R$ " + "{:.2f}".format(total_revenue))
 
             elif choice == '4':
                 logged_in = None
@@ -278,10 +408,8 @@ while True:
             print("\n***** Menu Cliente - " + logged_in + " *****")
             print("1. Visualizar Estoque")
             print("2. Efetuar Compra")
-            print("3. Agendar Retirada de Leite")
-            print("4. Agendar Retirada de Compras")
-            print("5. Histórico de Compras")
-            print("6. Logout")
+            print("3. Histórico de Compras e Retiradas")
+            print("4. Logout")
             choice = input("Escolha uma opção: ").strip()
 
             if choice == '1':
@@ -290,8 +418,9 @@ while True:
                 i = 0
                 while i < len(milk_stock):
                     total_milk = total_milk + milk_stock[i][1]
+                    print("- ADM: " + milk_stock[i][0] + " | Qtd: " + str(milk_stock[i][1]) + " L | Preço: R$ " + str(milk_stock[i][2]) + "/L")
                     i = i + 1
-                print("Leite disponível: " + str(total_milk) + " L")
+                print("Total de leite disponível: " + str(total_milk) + " L")
                 print("Produtos disponíveis:")
                 available_products = False
                 i = 0
@@ -310,7 +439,7 @@ while True:
                     status = status.replace('ú', 'u').replace('í', 'i').replace('ã', 'a').replace('ç', 'c').replace('ó', 'o').replace('é', 'e')
                     if status == 'disponivel para venda':
                         available_animals = True
-                        print("- " + animals[i][1] + ", ID: " + animals[i][2] + " (ADM: " + animals[i][0] + ")")
+                        print("- " + animals[i][1] + ", ID: " + animals[i][2] + " (ADM: " + animals[i][0] + ") - Preço: R$ " + str(animals[i][5]))
                     i = i + 1
                 if not available_animals:
                     print("Nenhum animal disponível para venda.")
@@ -335,37 +464,79 @@ while True:
                     else:
                         name = input("Nome do produto: ").strip()
                         qty_str = input("Quantidade (kg): ").strip()
-                        ok = True
-                        if qty_str == '':
-                            ok = False
-                        if ok:
-                            if qty_str.count('-') > 0 or qty_str.count('.') > 1:
-                                ok = False
-                        j = 0
-                        while ok and j < len(qty_str):
-                            ch = qty_str[j]
-                            if ch != '.' and (ch < '0' or ch > '9'):
-                                ok = False
-                            j = j + 1
-                        if ok:
+                        
+                        # Validação manual float qty_str (verifica se é um número válido e maior que 0)
+                        v_qty = True
+                        dot_c = 0
+                        if qty_str == "" or qty_str == ".": v_qty = False
+                        k = 0
+                        while k < len(qty_str):
+                            if qty_str[k] == ".": dot_c = dot_c + 1
+                            elif not (qty_str[k] >= "0" and qty_str[k] <= "9"): v_qty = False; break
+                            k = k + 1
+                        if dot_c > 1: v_qty = False
+
+                        if v_qty:
                             qty = float(qty_str)
+                            if qty <= 0:
+                                print('Quantidade inválida.')
+                            else:
+                                bought = False
+                                adm_name = ""
+                                i = 0
+                                while i < len(products):
+                                    if products[i][1] == name and products[i][2] >= qty:
+                                        adm_name = products[i][0]
+                                        price = products[i][3]
+                                        
+                                        print("Agende a retirada agora:")
+                                        date = input("Data (DD/MM/AAAA): ").strip()
+                                        time = input("Horário (HH:MM): ").strip()
+                                        
+                                        # Validação de Data Manual
+                                        v_date = True
+                                        d_parts = date.split('/')
+                                        t_parts = time.split(':')
+                                        if len(d_parts) != 3 or len(t_parts) != 2:
+                                            v_date = False
+                                        else:
+                                            # Checar se partes são numéricas manualmente
+                                            v_num = True
+                                            for part in [d_parts[0], d_parts[1], d_parts[2], t_parts[0], t_parts[1]]:
+                                                if part == "": v_num = False; break
+                                                k_part = 0
+                                                while k_part < len(part):
+                                                    if not (part[k_part] >= "0" and part[k_part] <= "9"): v_num = False; break
+                                                    k_part = k_part + 1
+                                                if not v_num: break
+                                            
+                                            if v_num:
+                                                dd = int(d_parts[0]); mm = int(d_parts[1]); yy = int(d_parts[2])
+                                                hh = int(t_parts[0]); mn = int(t_parts[1])
+                                                if yy < 2026 or (yy == 2026 and mm < 5) or (yy == 2026 and mm == 5 and dd < 11): v_date = False
+                                                if mm < 1 or mm > 12 or dd < 1 or dd > 31: v_date = False
+                                                if (mm == 4 or mm == 6 or mm == 9 or mm == 11) and dd > 30: v_date = False
+                                                if mm == 2 and dd > 29: v_date = False
+                                                if mm == 2 and dd == 29 and not (yy % 4 == 0 and (yy % 100 != 0 or yy % 400 == 0)): v_date = False
+                                                if hh < 0 or hh > 23 or mn < 0 or mn > 59: v_date = False
+                                            else:
+                                                v_date = False
+                                        
+                                        if v_date:
+                                            products[i][2] = products[i][2] - qty
+                                            purchases.append([logged_in, name, qty, 'produto', adm_name, price])
+                                            schedules.append([logged_in, name, qty, 'produto', date, time])
+                                            print("Compra e agendamento realizados!")
+                                            bought = True
+                                        else:
+                                            print("Data/hora inválida ou retroativa. Compra cancelada.")
+                                            bought = True # prevent not found message
+                                        break
+                                    i = i + 1
+                                if not bought:
+                                    print("Produto insuficiente ou não encontrado.")
                         else:
-                            qty = -1
-                        if qty <= 0:
                             print('Quantidade inválida.')
-                        else:
-                            bought = False
-                            i = 0
-                            while i < len(products):
-                                if products[i][1] == name and products[i][2] >= qty:
-                                    products[i][2] = products[i][2] - qty
-                                    purchases.append([logged_in, name, qty, 'produto', products[i][0], products[i][3]])
-                                    print("Compra realizada!")
-                                    bought = True
-                                    break
-                                i = i + 1
-                            if not bought:
-                                print("Produto insuficiente ou não encontrado.")
 
                 elif subchoice == '2':
                     available_animals = False
@@ -383,10 +554,45 @@ while True:
                         i = 0
                         while i < len(animals):
                             if animals[i][2] == aid and animals[i][4] == 'Disponível para venda':
-                                animals[i][4] = 'Vendido'
-                                purchases.append([logged_in, aid, 1, 'animal', animals[i][0], 0])
-                                print("Compra realizada!")
-                                bought = True
+                                print("Agende a retirada agora:")
+                                date = input("Data (DD/MM/AAAA): ").strip()
+                                time = input("Horário (HH:MM): ").strip()
+                                v_date = True
+                                d_parts = date.split('/')
+                                t_parts = time.split(':')
+                                if len(d_parts) != 3 or len(t_parts) != 2: v_date = False
+                                else:
+                                    v_num = True
+                                    for part in [d_parts[0], d_parts[1], d_parts[2], t_parts[0], t_parts[1]]:
+                                        if part == "": v_num = False; break
+                                        k_part = 0
+                                        while k_part < len(part):
+                                            if not (part[k_part] >= "0" and part[k_part] <= "9"): v_num = False; break
+                                            k_part = k_part + 1
+                                        if not v_num: break
+                                    
+                                    if v_num:
+                                        dd = int(d_parts[0]); mm = int(d_parts[1]); yy = int(d_parts[2])
+                                        hh = int(t_parts[0]); mn = int(t_parts[1])
+                                        if yy < 2026 or (yy == 2026 and mm < 5) or (yy == 2026 and mm == 5 and dd < 11): v_date = False
+                                        if mm < 1 or mm > 12 or dd < 1 or dd > 31: v_date = False
+                                        if (mm == 4 or mm == 6 or mm == 9 or mm == 11) and dd > 30: v_date = False
+                                        if mm == 2 and dd > 29: v_date = False
+                                        if mm == 2 and dd == 29 and not (yy % 4 == 0 and (yy % 100 != 0 or yy % 400 == 0)): v_date = False
+                                        if hh < 0 or hh > 23 or mn < 0 or mn > 59: v_date = False
+                                    else:
+                                        v_date = False
+                                
+                                if v_date:
+                                    animals[i][4] = 'Vendido'
+                                    # Grava o preço definido pelo ADM
+                                    purchases.append([logged_in, aid, 1, 'animal', animals[i][0], animals[i][5]])
+                                    schedules.append([logged_in, aid, 1, 'animal', date, time])
+                                    print("Compra e agendamento realizados! Preço: R$ " + str(animals[i][5]))
+                                    bought = True
+                                else:
+                                    print("Data/hora inválida ou retroativa. Compra cancelada.")
+                                    bought = True
                                 break
                             i = i + 1
                         if not bought:
@@ -401,239 +607,87 @@ while True:
                     if total_milk <= 0:
                         print('Nenhum leite disponível para compra.')
                     else:
-                        qty_str = input("Quantidade de leite (L): ").strip()
-                        ok = True
-                        if qty_str == '':
-                            ok = False
-                        if ok:
-                            if qty_str.count('-') > 0 or qty_str.count('.') > 1:
-                                ok = False
-                        j = 0
-                        while ok and j < len(qty_str):
-                            ch = qty_str[j]
-                            if ch != '.' and (ch < '0' or ch > '9'):
-                                ok = False
-                            j = j + 1
-                        if ok:
+                        qty_str = input("Quantidade (L): ").strip()
+                        
+                        # Validação manual float qty_str
+                        v_qty = True
+                        dot_c = 0
+                        if qty_str == "" or qty_str == ".": v_qty = False
+                        k = 0
+                        while k < len(qty_str):
+                            if qty_str[k] == ".": dot_c = dot_c + 1
+                            elif not (qty_str[k] >= "0" and qty_str[k] <= "9"): v_qty = False; break
+                            k = k + 1
+                        if dot_c > 1: v_qty = False
+
+                        if v_qty:
                             qty = float(qty_str)
-                        else:
-                            qty = -1
-                        if qty <= 0:
-                            print('Quantidade inválida.')
-                        elif qty > total_milk:
-                            print('Não há leite suficiente disponível.')
-                        else:
-                            remain = qty
-                            i = 0
-                            while i < len(milk_stock) and remain > 0:
-                                if milk_stock[i][1] > 0:
-                                    if milk_stock[i][1] >= remain:
-                                        milk_stock[i][1] = milk_stock[i][1] - remain
-                                        purchases.append([logged_in, 'Leite', remain, 'leite', milk_stock[i][0], 0])
-                                        remain = 0
+                            if qty <= 0 or qty > total_milk:
+                                print('Quantidade inválida ou superior ao estoque.')
+                            else:
+                                print("Agende a retirada agora:")
+                                date = input("Data (DD/MM/AAAA): ").strip()
+                                time = input("Horário (HH:MM): ").strip()
+                                v_date = True
+                                d_parts = date.split('/')
+                                t_parts = time.split(':')
+                                if len(d_parts) != 3 or len(t_parts) != 2: v_date = False
+                                else:
+                                    v_num = True
+                                    for part in [d_parts[0], d_parts[1], d_parts[2], t_parts[0], t_parts[1]]:
+                                        if part == "": v_num = False; break
+                                        k_part = 0
+                                        while k_part < len(part):
+                                            if not (part[k_part] >= "0" and part[k_part] <= "9"): v_num = False; break
+                                            k_part = k_part + 1
+                                        if not v_num: break
+
+                                    if v_num:
+                                        dd = int(d_parts[0]); mm = int(d_parts[1]); yy = int(d_parts[2])
+                                        hh = int(t_parts[0]); mn = int(t_parts[1])
+                                        if yy < 2026 or (yy == 2026 and mm < 5) or (yy == 2026 and mm == 5 and dd < 11): v_date = False
+                                        if mm < 1 or mm > 12 or dd < 1 or dd > 31: v_date = False
+                                        if (mm == 4 or mm == 6 or mm == 9 or mm == 11) and dd > 30: v_date = False
+                                        if mm == 2 and dd > 29: v_date = False
+                                        if mm == 2 and dd == 29 and not (yy % 4 == 0 and (yy % 100 != 0 or yy % 400 == 0)): v_date = False
+                                        if hh < 0 or hh > 23 or mn < 0 or mn > 59: v_date = False
                                     else:
-                                        purchases.append([logged_in, 'Leite', milk_stock[i][1], 'leite', milk_stock[i][0], 0])
-                                        remain = remain - milk_stock[i][1]
-                                        milk_stock[i][1] = 0
-                                i = i + 1
-                            print('Compra de leite realizada!')
+                                        v_date = False
+                                
+                                if v_date:
+                                    remain = qty
+                                    i = 0
+                                    while i < len(milk_stock) and remain > 0:
+                                        if milk_stock[i][1] > 0:
+                                            # Pega o preço específico deste ADM
+                                            price_l = milk_stock[i][2]
+                                            if milk_stock[i][1] >= remain:
+                                                purchases.append([logged_in, 'Leite', remain, 'leite', milk_stock[i][0], price_l])
+                                                schedules.append([logged_in, 'Leite', remain, 'leite', date, time])
+                                                milk_stock[i][1] = milk_stock[i][1] - remain
+                                                remain = 0
+                                            else:
+                                                purchases.append([logged_in, 'Leite', milk_stock[i][1], 'leite', milk_stock[i][0], price_l])
+                                                schedules.append([logged_in, 'Leite', milk_stock[i][1], 'leite', date, time])
+                                                remain = remain - milk_stock[i][1]
+                                                milk_stock[i][1] = 0
+                                        i = i + 1
+                                    print('Compra de leite e agendamento realizados!')
+                                else:
+                                    print("Data/hora inválida ou retroativa. Compra cancelada.")
+                        else:
+                            print('Quantidade inválida.')
 
                 else:
                     print("Opção inválida.")
 
             elif choice == '3':
-                total_milk = 0
-                i = 0
-                while i < len(milk_stock):
-                    total_milk = total_milk + milk_stock[i][1]
-                    i = i + 1
-                if total_milk <= 0:
-                    print('Nenhum leite disponível para retirada.')
-                else:
-                    qty_str = input("Quantidade de leite a retirar (máximo " + str(total_milk) + " L): ").strip()
-                    ok = True
-                    if qty_str == '':
-                        ok = False
-                    if ok:
-                        if qty_str.count('-') > 0 or qty_str.count('.') > 1:
-                            ok = False
-                    j = 0
-                    while ok and j < len(qty_str):
-                        ch = qty_str[j]
-                        if ch != '.' and (ch < '0' or ch > '9'):
-                            ok = False
-                        j = j + 1
-                    if ok:
-                        qty_to_withdraw = float(qty_str)
-                    else:
-                        qty_to_withdraw = -1
-                    if qty_to_withdraw <= 0 or qty_to_withdraw > total_milk:
-                        print('Quantidade inválida.')
-                    else:
-                        date = input("Data (DD/MM/AAAA): ").strip()
-                        time = input("Horário (HH:MM): ").strip()
-                        valid_date = True
-                        parts = date.split('/')
-                        time_parts = time.split(':')
-                        if len(parts) != 3 or len(time_parts) != 2:
-                            valid_date = False
-                        else:
-                            i = 0
-                            while valid_date and i < len(parts):
-                                if parts[i] == '':
-                                    valid_date = False
-                                else:
-                                    j = 0
-                                    while j < len(parts[i]):
-                                        ch = parts[i][j]
-                                        if ch < '0' or ch > '9':
-                                            valid_date = False
-                                        j = j + 1
-                                i = i + 1
-                            i = 0
-                            while valid_date and i < len(time_parts):
-                                if time_parts[i] == '':
-                                    valid_date = False
-                                else:
-                                    j = 0
-                                    while j < len(time_parts[i]):
-                                        ch = time_parts[i][j]
-                                        if ch < '0' or ch > '9':
-                                            valid_date = False
-                                        j = j + 1
-                                i = i + 1
-                            if valid_date:
-                                day = int(parts[0])
-                                month = int(parts[1])
-                                year = int(parts[2])
-                                hour = int(time_parts[0])
-                                minute = int(time_parts[1])
-                                if year < 1 or month < 1 or month > 12 or day < 1 or day > 31:
-                                    valid_date = False
-                                if hour < 0 or hour > 23 or minute < 0 or minute > 59:
-                                    valid_date = False
-                                if (month == 4 or month == 6 or month == 9 or month == 11) and day > 30:
-                                    valid_date = False
-                                if month == 2:
-                                    if day > 29:
-                                        valid_date = False
-                                    elif day == 29:
-                                        if (year % 4 != 0) or (year % 100 == 0 and year % 400 != 0):
-                                            valid_date = False
-                        if not valid_date:
-                            print('Data ou horário inválido. Use formato DD/MM/AAAA e HH:MM.')
-                        else:
-                            schedules.append([logged_in, 'Leite', qty_to_withdraw, 'leite', date, time])
-                            print('Agendamento de retirada de leite realizado!')
-
-            elif choice == '4':
-                client_purchases = []
-                i = 0
-                while i < len(purchases):
-                    if purchases[i][0] == logged_in and purchases[i][3] != 'leite':
-                        client_purchases.append(purchases[i])
-                    i = i + 1
-                if len(client_purchases) == 0:
-                    print('Você não tem compras de produtos ou animais registradas para agendar retirada.')
-                else:
-                    print('Compras disponíveis para retirada:')
-                    index = 0
-                    while index < len(client_purchases):
-                        pur = client_purchases[index]
-                        print(str(index + 1) + ". " + pur[3] + ": " + str(pur[1]) + ", Qtd: " + str(pur[2]))
-                        index = index + 1
-                    choice_str = input('Escolha o número da compra: ').strip()
-                    if choice_str.isdigit():
-                        choice_index = int(choice_str)
-                    else:
-                        choice_index = -1
-                    if choice_index < 1 or choice_index > len(client_purchases):
-                        print('Opção inválida.')
-                    else:
-                        selected = client_purchases[choice_index - 1]
-                        qty_str = input("Quantidade a retirar (máximo " + str(selected[2]) + "): ").strip()
-                        ok = True
-                        if qty_str == '':
-                            ok = False
-                        if ok:
-                            if qty_str.count('-') > 0 or qty_str.count('.') > 1:
-                                ok = False
-                        j = 0
-                        while ok and j < len(qty_str):
-                            ch = qty_str[j]
-                            if ch != '.' and (ch < '0' or ch > '9'):
-                                ok = False
-                            j = j + 1
-                        if ok:
-                            qty_to_withdraw = float(qty_str)
-                        else:
-                            qty_to_withdraw = -1
-                        if qty_to_withdraw <= 0 or qty_to_withdraw > selected[2]:
-                            print('Quantidade inválida.')
-                        else:
-                            date = input("Data (DD/MM/AAAA): ").strip()
-                            time = input("Horário (HH:MM): ").strip()
-                            valid_date = True
-                            parts = date.split('/')
-                            time_parts = time.split(':')
-                            if len(parts) != 3 or len(time_parts) != 2:
-                                valid_date = False
-                            else:
-                                i = 0
-                                while valid_date and i < len(parts):
-                                    if parts[i] == '':
-                                        valid_date = False
-                                    else:
-                                        j = 0
-                                        while j < len(parts[i]):
-                                            ch = parts[i][j]
-                                            if ch < '0' or ch > '9':
-                                                valid_date = False
-                                            j = j + 1
-                                    i = i + 1
-                                i = 0
-                                while valid_date and i < len(time_parts):
-                                    if time_parts[i] == '':
-                                        valid_date = False
-                                    else:
-                                        j = 0
-                                        while j < len(time_parts[i]):
-                                            ch = time_parts[i][j]
-                                            if ch < '0' or ch > '9':
-                                                valid_date = False
-                                            j = j + 1
-                                    i = i + 1
-                                if valid_date:
-                                    day = int(parts[0])
-                                    month = int(parts[1])
-                                    year = int(parts[2])
-                                    hour = int(time_parts[0])
-                                    minute = int(time_parts[1])
-                                    if year < 1 or month < 1 or month > 12 or day < 1 or day > 31:
-                                        valid_date = False
-                                    if hour < 0 or hour > 23 or minute < 0 or minute > 59:
-                                        valid_date = False
-                                    if (month == 4 or month == 6 or month == 9 or month == 11) and day > 30:
-                                        valid_date = False
-                                    if month == 2:
-                                        if day > 29:
-                                            valid_date = False
-                                        elif day == 29:
-                                            if (year % 4 != 0) or (year % 100 == 0 and year % 400 != 0):
-                                                valid_date = False
-                            if not valid_date:
-                                print('Data ou horário inválido. Use formato DD/MM/AAAA e HH:MM.')
-                            else:
-                                schedules.append([logged_in, selected[1], qty_to_withdraw, selected[3], date, time])
-                                print('Agendamento realizado!')
-
-            elif choice == '5':
                 print("\n***** Histórico de Compras *****")
                 has_history = False
                 i = 0
                 while i < len(purchases):
                     if purchases[i][0] == logged_in:
-                        print("- " + purchases[i][3] + ": " + str(purchases[i][1]) + ", Qtd: " + str(purchases[i][2]))
+                        print("- " + purchases[i][3] + ": " + str(purchases[i][1]) + ", Qtd: " + str(purchases[i][2]) + ", Vendedor: " + purchases[i][4])
                         has_history = True
                     i = i + 1
                 if not has_history:
@@ -643,13 +697,13 @@ while True:
                 i = 0
                 while i < len(schedules):
                     if schedules[i][0] == logged_in:
-                        print("- " + schedules[i][3] + ": " + str(schedules[i][1]) + ", Qtd: " + str(schedules[i][2]) + ", " + schedules[i][4] + " " + schedules[i][5])
+                        print("- " + schedules[i][3] + ": " + str(schedules[i][1]) + ", Qtd: " + str(schedules[i][2]) + ", Data: " + schedules[i][4] + " " + schedules[i][5])
                         has_schedules = True
                     i = i + 1
                 if not has_schedules:
                     print('Nenhum agendamento de retirada.')
 
-            elif choice == '6':
+            elif choice == '4':
                 logged_in = None
                 user_type = None
                 print("Logout realizado.")
