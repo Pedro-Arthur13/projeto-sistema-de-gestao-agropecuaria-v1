@@ -3,7 +3,7 @@
 
 users = []
 animals = []
-milk_stock = 0
+milk_stock = []
 products = []
 purchases = []
 schedules = []
@@ -93,15 +93,25 @@ while True:
                             astatus = 'Disponível para venda'
                         else:
                             astatus = raw_status
-                        animals.append([atype, aid, aweight, astatus])
-                        print('Animal cadastrado!')
+                        duplicate_id = False
+                        j = 0
+                        while j < len(animals):
+                            if animals[j][2] == aid:
+                                duplicate_id = True
+                                break
+                            j = j + 1
+                        if duplicate_id:
+                            print('Já existe um animal com este ID.')
+                        else:
+                            animals.append([logged_in, atype, aid, aweight, astatus])
+                            print('Animal cadastrado!')
 
                 elif subchoice == '2':
                     aid = input("ID do animal: ").strip()
                     found = False
                     for animal in animals:
-                        if animal[1] == aid:
-                            print("Tipo: " + animal[0] + ", Status: " + animal[3])
+                        if animal[2] == aid:
+                            print("Tipo: " + animal[1] + ", Status: " + animal[4])
                             found = True
                             break
                     if not found:
@@ -118,8 +128,8 @@ while True:
                         normalized_status = new_status
                     found = False
                     for animal in animals:
-                        if animal[1] == aid:
-                            animal[3] = normalized_status
+                        if animal[2] == aid:
+                            animal[4] = normalized_status
                             print('Atualizado!')
                             found = True
                             break
@@ -131,7 +141,7 @@ while True:
                     removed = False
                     i = 0
                     while i < len(animals):
-                        if animals[i][1] == aid:
+                        if animals[i][2] == aid:
                             del animals[i]
                             print("Removido!")
                             removed = True
@@ -147,8 +157,7 @@ while True:
                         print('\n***** Lista de Animais *****')
                         i = 0
                         while i < len(animals):
-                            animal = animals[i]
-                            print("Tipo: " + animal[0] + ", Peso: " + animal[2] + " kg, Status: " + animal[3])
+                            print("Tipo: " + animals[i][1] + ", Peso: " + animals[i][3] + " kg, Status: " + animals[i][4] + " (ADM: " + animals[i][0] + ")")
                             i = i + 1
 
                 else:
@@ -177,8 +186,17 @@ while True:
                     if ok:
                         liters = float(liters_str)
                         if liters > 0:
-                            milk_stock = milk_stock + liters
-                            print("Estoque de leite: " + str(milk_stock) + " L")
+                            found = False
+                            i = 0
+                            while i < len(milk_stock):
+                                if milk_stock[i][0] == logged_in:
+                                    milk_stock[i][1] = milk_stock[i][1] + liters
+                                    found = True
+                                    break
+                                i = i + 1
+                            if not found:
+                                milk_stock.append([logged_in, liters])
+                            print("Estoque de leite: " + str(liters) + " L adicionados")
                         else:
                             print('Quantidade deve ser maior que zero.')
                     else:
@@ -195,14 +213,12 @@ while True:
                         if weight_str.count('-') > 0 or weight_str.count('.') > 1 or value_str.count('-') > 0 or value_str.count('.') > 1:
                             ok = False
                     i = 0
-                    # Validação manual para garantir que o valor seja um número positivo, permitindo apenas um ponto decimal
                     while ok and i < len(weight_str):
                         ch = weight_str[i]
                         if ch != '.' and (ch < '0' or ch > '9'):
                             ok = False
                         i = i + 1
                     i = 0
-                    # Fazemos outro while para o value_str, pois o peso e o valor são validados separadamente
                     while ok and i < len(value_str):
                         ch = value_str[i]
                         if ch != '.' and (ch < '0' or ch > '9'):
@@ -210,9 +226,9 @@ while True:
                         i = i + 1
                     if ok:
                         weight = float(weight_str)
-                        value = float(value_str) 
+                        value = float(value_str)
                         if weight > 0 and value >= 0:
-                            products.append([name, weight, value])
+                            products.append([logged_in, name, weight, value])
                             print("Produto adicionado!")
                         else:
                             print('Peso deve ser maior que zero e valor não pode ser negativo.')
@@ -224,25 +240,29 @@ while True:
 
             elif choice == '3':
                 print("\n***** Relatório *****")
-                print("Total de animais: " + str(len(animals)))
-                print("Estoque de leite: " + str(milk_stock) + " L")
+                animal_count = 0
+                i = 0
+                while i < len(animals):
+                    animal_count = animal_count + 1
+                    i = i + 1
+                print("Total de animais: " + str(animal_count))
+                milk_amount = 0
+                i = 0
+                while i < len(milk_stock):
+                    milk_amount = milk_amount + milk_stock[i][1]
+                    i = i + 1
+                print("Estoque de leite: " + str(milk_amount) + " L")
                 total_prod_weight = 0
                 i = 0
                 while i < len(products):
-                    total_prod_weight = total_prod_weight + products[i][1]
+                    total_prod_weight = total_prod_weight + products[i][2]
                     i = i + 1
                 print("Peso total de produtos: " + str(total_prod_weight) + " kg")
                 total_revenue = 0
                 i = 0
                 while i < len(purchases):
-                    pur = purchases[i]
-                    if pur[3] == 'produto':
-                        j = 0
-                        while j < len(products):
-                            if products[j][0] == pur[1]:
-                                total_revenue = total_revenue + pur[2] * products[j][2]
-                                break
-                            j = j + 1
+                    if purchases[i][3] == 'produto' and len(purchases[i]) > 5:
+                        total_revenue = total_revenue + purchases[i][2] * purchases[i][5]
                     i = i + 1
                 print("Receita total de produtos vendidos: R$ " + "{:.2f}".format(total_revenue))
 
@@ -266,14 +286,19 @@ while True:
 
             if choice == '1':
                 print("\n***** Estoque *****")
-                print("Leite disponível: " + str(milk_stock) + " L")
+                total_milk = 0
+                i = 0
+                while i < len(milk_stock):
+                    total_milk = total_milk + milk_stock[i][1]
+                    i = i + 1
+                print("Leite disponível: " + str(total_milk) + " L")
                 print("Produtos disponíveis:")
                 available_products = False
                 i = 0
                 while i < len(products):
-                    if products[i][1] > 0:
+                    if products[i][2] > 0:
                         available_products = True
-                        print("- " + products[i][0] + ": " + str(products[i][1]) + " kg, R$ " + str(products[i][2]))
+                        print("- " + products[i][1] + " (ADM: " + products[i][0] + "): " + str(products[i][2]) + " kg, R$ " + str(products[i][3]))
                     i = i + 1
                 if not available_products:
                     print("Nenhum produto disponível.")
@@ -281,11 +306,11 @@ while True:
                 available_animals = False
                 i = 0
                 while i < len(animals):
-                    status = animals[i][3].strip().lower()
+                    status = animals[i][4].strip().lower()
                     status = status.replace('ú', 'u').replace('í', 'i').replace('ã', 'a').replace('ç', 'c').replace('ó', 'o').replace('é', 'e')
                     if status == 'disponivel para venda':
                         available_animals = True
-                        print("- " + animals[i][0] + ", ID: " + animals[i][1])
+                        print("- " + animals[i][1] + ", ID: " + animals[i][2] + " (ADM: " + animals[i][0] + ")")
                     i = i + 1
                 if not available_animals:
                     print("Nenhum animal disponível para venda.")
@@ -301,9 +326,9 @@ while True:
                     available_products = False
                     i = 0
                     while i < len(products):
-                        if products[i][1] > 0:
+                        if products[i][2] > 0:
                             available_products = True
-                            print("- " + products[i][0] + ": " + str(products[i][1]) + " kg, R$ " + str(products[i][2]))
+                            print("- " + products[i][1] + " (ADM: " + products[i][0] + "): " + str(products[i][2]) + " kg, R$ " + str(products[i][3]))
                         i = i + 1
                     if not available_products:
                         print('Nenhum produto disponível para compra.')
@@ -332,9 +357,9 @@ while True:
                             bought = False
                             i = 0
                             while i < len(products):
-                                if products[i][0] == name and products[i][1] >= qty:
-                                    products[i][1] = products[i][1] - qty
-                                    purchases.append([logged_in, name, qty, 'produto'])
+                                if products[i][1] == name and products[i][2] >= qty:
+                                    products[i][2] = products[i][2] - qty
+                                    purchases.append([logged_in, name, qty, 'produto', products[i][0], products[i][3]])
                                     print("Compra realizada!")
                                     bought = True
                                     break
@@ -346,9 +371,9 @@ while True:
                     available_animals = False
                     i = 0
                     while i < len(animals):
-                        if animals[i][3] == 'Disponível para venda':
+                        if animals[i][4] == 'Disponível para venda':
                             available_animals = True
-                            print("- " + animals[i][0] + ", ID: " + animals[i][1])
+                            print("- " + animals[i][1] + ", ID: " + animals[i][2] + " (ADM: " + animals[i][0] + ")")
                         i = i + 1
                     if not available_animals:
                         print('Nenhum animal disponível para venda.')
@@ -357,9 +382,9 @@ while True:
                         bought = False
                         i = 0
                         while i < len(animals):
-                            if animals[i][1] == aid and animals[i][3] == 'Disponível para venda':
-                                animals[i][3] = 'Vendido'
-                                purchases.append([logged_in, aid, 1, 'animal'])
+                            if animals[i][2] == aid and animals[i][4] == 'Disponível para venda':
+                                animals[i][4] = 'Vendido'
+                                purchases.append([logged_in, aid, 1, 'animal', animals[i][0], 0])
                                 print("Compra realizada!")
                                 bought = True
                                 break
@@ -368,7 +393,12 @@ while True:
                             print("Animal não disponível.")
 
                 elif subchoice == '3':
-                    if milk_stock <= 0:
+                    total_milk = 0
+                    i = 0
+                    while i < len(milk_stock):
+                        total_milk = total_milk + milk_stock[i][1]
+                        i = i + 1
+                    if total_milk <= 0:
                         print('Nenhum leite disponível para compra.')
                     else:
                         qty_str = input("Quantidade de leite (L): ").strip()
@@ -390,21 +420,37 @@ while True:
                             qty = -1
                         if qty <= 0:
                             print('Quantidade inválida.')
-                        elif qty > milk_stock:
+                        elif qty > total_milk:
                             print('Não há leite suficiente disponível.')
                         else:
-                            milk_stock = milk_stock - qty
-                            purchases.append([logged_in, 'Leite', qty, 'leite'])
+                            remain = qty
+                            i = 0
+                            while i < len(milk_stock) and remain > 0:
+                                if milk_stock[i][1] > 0:
+                                    if milk_stock[i][1] >= remain:
+                                        milk_stock[i][1] = milk_stock[i][1] - remain
+                                        purchases.append([logged_in, 'Leite', remain, 'leite', milk_stock[i][0], 0])
+                                        remain = 0
+                                    else:
+                                        purchases.append([logged_in, 'Leite', milk_stock[i][1], 'leite', milk_stock[i][0], 0])
+                                        remain = remain - milk_stock[i][1]
+                                        milk_stock[i][1] = 0
+                                i = i + 1
                             print('Compra de leite realizada!')
 
                 else:
                     print("Opção inválida.")
 
             elif choice == '3':
-                if milk_stock <= 0:
+                total_milk = 0
+                i = 0
+                while i < len(milk_stock):
+                    total_milk = total_milk + milk_stock[i][1]
+                    i = i + 1
+                if total_milk <= 0:
                     print('Nenhum leite disponível para retirada.')
                 else:
-                    qty_str = input("Quantidade de leite a retirar (máximo " + str(milk_stock) + " L): ").strip()
+                    qty_str = input("Quantidade de leite a retirar (máximo " + str(total_milk) + " L): ").strip()
                     ok = True
                     if qty_str == '':
                         ok = False
@@ -421,7 +467,7 @@ while True:
                         qty_to_withdraw = float(qty_str)
                     else:
                         qty_to_withdraw = -1
-                    if qty_to_withdraw <= 0 or qty_to_withdraw > milk_stock:
+                    if qty_to_withdraw <= 0 or qty_to_withdraw > total_milk:
                         print('Quantidade inválida.')
                     else:
                         date = input("Data (DD/MM/AAAA): ").strip()
