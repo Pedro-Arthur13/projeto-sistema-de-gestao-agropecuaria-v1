@@ -481,58 +481,71 @@ while True:
                             if qty <= 0:
                                 print('Quantidade inválida.')
                             else:
-                                bought = False
-                                adm_name = ""
+                                # Listar vendedores para este produto
+                                print("Vendedores disponíveis para " + name + ":")
                                 i = 0
+                                found_any = False
                                 while i < len(products):
                                     if products[i][1] == name and products[i][2] >= qty:
-                                        adm_name = products[i][0]
-                                        price = products[i][3]
-                                        
-                                        print("Agende a retirada agora:")
-                                        date = input("Data (DD/MM/AAAA): ").strip()
-                                        time = input("Horário (HH:MM): ").strip()
-                                        
-                                        # Validação de Data Manual
-                                        v_date = True
-                                        d_parts = date.split('/')
-                                        t_parts = time.split(':')
-                                        if len(d_parts) != 3 or len(t_parts) != 2:
-                                            v_date = False
-                                        else:
-                                            # Checar se partes são numéricas manualmente
-                                            v_num = True
-                                            for part in [d_parts[0], d_parts[1], d_parts[2], t_parts[0], t_parts[1]]:
-                                                if part == "": v_num = False; break
-                                                k_part = 0
-                                                while k_part < len(part):
-                                                    if not (part[k_part] >= "0" and part[k_part] <= "9"): v_num = False; break
-                                                    k_part = k_part + 1
-                                                if not v_num: break
-                                            
-                                            if v_num:
-                                                dd = int(d_parts[0]); mm = int(d_parts[1]); yy = int(d_parts[2])
-                                                hh = int(t_parts[0]); mn = int(t_parts[1])
-                                                if yy < 2026 or (yy == 2026 and mm < 5) or (yy == 2026 and mm == 5 and dd < 11): v_date = False
-                                                if mm < 1 or mm > 12 or dd < 1 or dd > 31: v_date = False
-                                                if (mm == 4 or mm == 6 or mm == 9 or mm == 11) and dd > 30: v_date = False
-                                                if mm == 2 and dd > 29: v_date = False
-                                                if mm == 2 and dd == 29 and not (yy % 4 == 0 and (yy % 100 != 0 or yy % 400 == 0)): v_date = False
-                                                if hh < 0 or hh > 23 or mn < 0 or mn > 59: v_date = False
-                                            else:
-                                                v_date = False
-                                        
-                                        if v_date:
-                                            products[i][2] = products[i][2] - qty
-                                            purchases.append([logged_in, name, qty, 'produto', adm_name, price])
-                                            schedules.append([logged_in, name, qty, 'produto', date, time])
-                                            print("Compra e agendamento realizados!")
-                                            bought = True
-                                        else:
-                                            print("Data/hora inválida ou retroativa. Compra cancelada.")
-                                            bought = True # prevent not found message
-                                        break
+                                        print("- " + products[i][0] + " | R$ " + str(products[i][3]) + "/kg")
+                                        found_any = True
                                     i = i + 1
+                                
+                                if not found_any:
+                                    print("Nenhum vendedor com estoque suficiente para este produto.")
+                                else:
+                                    target_adm = input("De qual vendedor deseja comprar? (Nome): ").strip()
+                                    bought = False
+                                    i = 0
+                                    while i < len(products):
+                                        if products[i][1] == name and products[i][0] == target_adm and products[i][2] >= qty:
+                                            adm_name = products[i][0]
+                                            price = products[i][3]
+                                            
+                                            print("Agende a retirada agora:")
+                                            date = input("Data (DD/MM/AAAA): ").strip()
+                                            time = input("Horário (HH:MM): ").strip()
+                                            
+                                            # Validação de Data Manual
+                                            v_date = True
+                                            d_parts = date.split('/')
+                                            t_parts = time.split(':')
+                                            if len(d_parts) != 3 or len(t_parts) != 2:
+                                                v_date = False
+                                            else:
+                                                # Checar se partes são numéricas manualmente
+                                                v_num = True
+                                                for part in [d_parts[0], d_parts[1], d_parts[2], t_parts[0], t_parts[1]]:
+                                                    if part == "": v_num = False; break
+                                                    k_part = 0
+                                                    while k_part < len(part):
+                                                        if not (part[k_part] >= "0" and part[k_part] <= "9"): v_num = False; break
+                                                        k_part = k_part + 1
+                                                    if not v_num: break
+                                                
+                                                if v_num:
+                                                    dd = int(d_parts[0]); mm = int(d_parts[1]); yy = int(d_parts[2])
+                                                    hh = int(t_parts[0]); mn = int(t_parts[1])
+                                                    if yy < 2026 or (yy == 2026 and mm < 5) or (yy == 2026 and mm == 5 and dd < 11): v_date = False
+                                                    if mm < 1 or mm > 12 or dd < 1 or dd > 31: v_date = False
+                                                    if (mm == 4 or mm == 6 or mm == 9 or mm == 11) and dd > 30: v_date = False
+                                                    if mm == 2 and dd > 29: v_date = False
+                                                    if mm == 2 and dd == 29 and not (yy % 4 == 0 and (yy % 100 != 0 or yy % 400 == 0)): v_date = False
+                                                    if hh < 0 or hh > 23 or mn < 0 or mn > 59: v_date = False
+                                                else:
+                                                    v_date = False
+                                            
+                                            if v_date:
+                                                products[i][2] = products[i][2] - qty
+                                                purchases.append([logged_in, name, qty, 'produto', adm_name, price])
+                                                schedules.append([logged_in, name, qty, 'produto', date, time])
+                                                print("Compra e agendamento realizados!")
+                                                bought = True
+                                            else:
+                                                print("Data/hora inválida ou retroativa. Compra cancelada.")
+                                                bought = True # prevent not found message
+                                            break
+                                        i = i + 1
                                 if not bought:
                                     print("Produto insuficiente ou não encontrado.")
                         else:
@@ -655,24 +668,36 @@ while True:
                                         v_date = False
                                 
                                 if v_date:
-                                    remain = qty
+                                    # Listar vendedores de leite
+                                    print("Vendedores de Leite disponíveis:")
                                     i = 0
-                                    while i < len(milk_stock) and remain > 0:
+                                    while i < len(milk_stock):
                                         if milk_stock[i][1] > 0:
-                                            # Pega o preço específico deste ADM
-                                            price_l = milk_stock[i][2]
-                                            if milk_stock[i][1] >= remain:
-                                                purchases.append([logged_in, 'Leite', remain, 'leite', milk_stock[i][0], price_l])
-                                                schedules.append([logged_in, 'Leite', remain, 'leite', date, time])
-                                                milk_stock[i][1] = milk_stock[i][1] - remain
-                                                remain = 0
-                                            else:
-                                                purchases.append([logged_in, 'Leite', milk_stock[i][1], 'leite', milk_stock[i][0], price_l])
-                                                schedules.append([logged_in, 'Leite', milk_stock[i][1], 'leite', date, time])
-                                                remain = remain - milk_stock[i][1]
-                                                milk_stock[i][1] = 0
+                                            print("- ADM: " + milk_stock[i][0] + " | Qtd: " + str(milk_stock[i][1]) + " L | Preço: R$ " + str(milk_stock[i][2]) + "/L")
                                         i = i + 1
-                                    print('Compra de leite e agendamento realizados!')
+                                    
+                                    target_adm = input("De qual vendedor deseja comprar? (Nome): ").strip()
+                                    
+                                    # Processar compra do vendedor escolhido
+                                    found_adm = False
+                                    i = 0
+                                    while i < len(milk_stock):
+                                        if milk_stock[i][0] == target_adm:
+                                            if milk_stock[i][1] >= qty:
+                                                price_l = milk_stock[i][2]
+                                                purchases.append([logged_in, 'Leite', qty, 'leite', target_adm, price_l])
+                                                schedules.append([logged_in, 'Leite', qty, 'leite', date, time])
+                                                milk_stock[i][1] = milk_stock[i][1] - qty
+                                                print('Compra de leite do ADM ' + target_adm + ' realizada!')
+                                                found_adm = True
+                                            else:
+                                                print('O ADM ' + target_adm + ' não possui leite suficiente.')
+                                                found_adm = True # Encontrou o ADM, mas estoque falhou
+                                            break
+                                        i = i + 1
+                                    
+                                    if not found_adm:
+                                        print('Vendedor não encontrado.')
                                 else:
                                     print("Data/hora inválida ou retroativa. Compra cancelada.")
                         else:
