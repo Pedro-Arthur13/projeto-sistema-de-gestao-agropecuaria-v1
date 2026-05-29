@@ -9,6 +9,8 @@ purchases = []
 schedules = []
 
 logged_in = None
+logged_name = None
+logged_prefix = None
 user_type = None
 
 while True:
@@ -20,28 +22,80 @@ while True:
         choice = input("Escolha uma opção: ").strip()
 
         if choice == '1':
-            username = input("Usuário: ").strip()
+            email = input("E-mail: ").strip()
             password = input("Senha: ").strip()
             found = False
             for user in users:
-                if user[0] == username and user[1] == password:
-                    logged_in = username
-                    user_type = user[2]
-                    print("Bem-vindo, " + username + " (" + user_type + ")!")
+                if user[1] == email and user[2] == password:
+                    logged_in = user[1]
+                    logged_name = user[0]
+                    user_type = user[3]
+                    logged_prefix = user[4]
+                    print("Bem-vindo, " + logged_name + " (" + user_type + ")!")
                     found = True
                     break
             if not found:
-                print("Usuário ou senha inválidos.")
+                print("E-mail ou senha inválidos.")
 
         elif choice == '2':
             username = input("Novo usuário: ").strip()
+            email = input("E-mail: ").strip()
             password = input("Senha: ").strip()
-            utype = input("Tipo (ADM/CLIENTE): ").strip().upper()
-            if utype == 'ADM' or utype == 'CLIENTE':
-                users.append([username, password, utype])
-                print("Usuário cadastrado com sucesso!")
+            v_email = False
+            at_count = 0
+            at_idx = -1
+            dot_idx = -1
+            k = 0
+            while k < len(email):
+                if email[k] == '@':
+                    at_count = at_count + 1
+                    at_idx = k
+                elif email[k] == '.' and at_count == 1:
+                    dot_idx = k
+                k = k + 1
+            if at_count == 1 and at_idx > 0 and dot_idx > at_idx + 1 and dot_idx < len(email) - 1:
+                v_email = True
+
+            dup_email = False
+            for u in users:
+                if u[1] == email:
+                    dup_email = True
+                    break
+            
+            if not v_email:
+                print("E-mail inválido (formato esperado: algo@algo.algo).")
+            elif dup_email:
+                print("E-mail já cadastrado!")
             else:
-                print("Tipo inválido. Use ADM ou CLIENTE.")
+                utype = input("Tipo (ADM/CLIENTE): ").strip().upper()
+                if utype == 'ADM' or utype == 'CLIENTE':
+                    prefix = ""
+                    if utype == 'ADM':
+                        if len(username) > 0:
+                            prefix = username[0].lower()
+                        else:
+                            prefix = "adm"
+                        i = 1
+                        while True:
+                            taken = False
+                            for u in users:
+                                if u[3] == 'ADM' and u[4] == prefix:
+                                    taken = True
+                                    break
+                            if not taken:
+                                break
+                            if i < len(username):
+                                char = username[i].lower()
+                                if char != " ":
+                                    prefix = prefix + char
+                                i = i + 1
+                            else:
+                                prefix = prefix + "1"
+                                
+                    users.append([username, email, password, utype, prefix])
+                    print("Usuário cadastrado com sucesso!")
+                else:
+                    print("Tipo inválido. Use ADM ou CLIENTE.")
 
         elif choice == '3':
             print("Saindo...")
@@ -52,7 +106,7 @@ while True:
 
     else:
         if user_type == 'ADM':
-            print("\n***** Menu ADM - " + logged_in + " *****")
+            print("\n***** Menu ADM - " + logged_name + " *****")
             print("1. Gerenciar Rebanho")
             print("2. Gerenciar Produção e Derivados")
             print("3. Relatório")
@@ -84,7 +138,8 @@ while True:
                         atype = None
 
                     if atype is not None:
-                        aid = input("ID (brinco/número): ").strip()
+                        raw_aid = input("ID (brinco/número): ").strip()
+                        aid = logged_prefix + raw_aid
                         aweight = input("Peso (kg): ").strip()
                         aprice_str = input("Preço de venda (R$): ").strip()
                         raw_status = input("Status: ").strip()
@@ -105,8 +160,8 @@ while True:
                             print('Já existe um animal com este ID.')
                         else:
                             v_weight = True
-                            dot_c = 0
-                            if aweight == "" or aweight == ".": v_weight = False
+                            dot_c = 0 
+                            if aweight == "" or aweight == ".": v_weight = False 
                             k = 0
                             while k < len(aweight):
                                 char = aweight[k]
@@ -122,7 +177,7 @@ while True:
                             dot_c = 0
                             if aprice_str == "" or aprice_str == ".": v_aprice = False
                             else:
-                                k = 0
+                                k = 0 
                                 while k < len(aprice_str):
                                     if aprice_str[k] == ".": dot_c = dot_c + 1
                                     elif not aprice_str[k].isdigit(): v_aprice = False; break
@@ -136,7 +191,8 @@ while True:
                                 print('Peso ou Preço inválido.')
 
                 elif subchoice == '2':
-                    aid = input("ID do animal: ").strip()
+                    raw_aid = input("ID do animal: ").strip()
+                    aid = logged_prefix + raw_aid
                     found = False
                     for animal in animals:
                         if animal[2] == aid:
@@ -147,7 +203,8 @@ while True:
                         print("Animal não encontrado.")
 
                 elif subchoice == '3':
-                    aid = input("ID do animal: ").strip()
+                    raw_aid = input("ID do animal: ").strip()
+                    aid = logged_prefix + raw_aid
                     new_status = input("Novo status: ").strip()
                     new_status_lower = new_status.lower()
                     new_status_lower = new_status_lower.replace('ú', 'u').replace('í', 'i').replace('ã', 'a').replace('ç', 'c').replace('ó', 'o').replace('é', 'e')
@@ -166,7 +223,8 @@ while True:
                         print('Animal não encontrado.')
 
                 elif subchoice == '4':
-                    aid = input("ID do animal: ").strip()
+                    raw_aid = input("ID do animal: ").strip()
+                    aid = logged_prefix + raw_aid
                     removed = False
                     i = 0
                     while i < len(animals):
@@ -397,6 +455,8 @@ while True:
 
             elif choice == '4':
                 logged_in = None
+                logged_name = None
+                logged_prefix = None
                 user_type = None
                 print("Logout realizado.")
 
@@ -404,7 +464,7 @@ while True:
                 print("Opção inválida.")
 
         else:
-            print("\n***** Menu Cliente - " + logged_in + " *****")
+            print("\n***** Menu Cliente - " + logged_name + " *****")
             print("1. Visualizar Estoque")
             print("2. Efetuar Compra")
             print("3. Histórico de Compras e Retiradas")
@@ -493,7 +553,7 @@ while True:
                                 if not found_any:
                                     print("Nenhum vendedor com estoque suficiente para este produto.")
                                 else:
-                                    target_adm = input("De qual vendedor deseja comprar? (Nome): ").strip()
+                                    target_adm = input("De qual vendedor deseja comprar? (E-mail): ").strip()
                                     bought = False
                                     i = 0
                                     while i < len(products):
@@ -663,7 +723,7 @@ while True:
                                             print("- ADM: " + milk_stock[i][0] + " | Qtd: " + str(milk_stock[i][1]) + " L | Preço: R$ " + str(milk_stock[i][2]) + "/L")
                                         i = i + 1
                                     
-                                    target_adm = input("De qual vendedor deseja comprar? (Nome): ").strip()
+                                    target_adm = input("De qual vendedor deseja comprar? (E-mail): ").strip()
                                     
                                     # Processar compra do vendedor escolhido
                                     found_adm = False
@@ -717,6 +777,8 @@ while True:
 
             elif choice == '4':
                 logged_in = None
+                logged_name = None
+                logged_prefix = None
                 user_type = None
                 print("Logout realizado.")
 
