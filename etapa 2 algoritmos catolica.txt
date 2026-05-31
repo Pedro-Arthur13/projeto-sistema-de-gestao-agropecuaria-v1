@@ -1,0 +1,35 @@
+Sistema de Gestão Agropecuária (Fazenda Sertão) - Etapa 2
+Nesta segunda etapa, o sistema evoluirá para uma arquitetura mais organizada e robusta. Os dados agora devem ser estruturados de forma mais inteligente, o código deve ser dividido em partes menores e o terminal ganhará novas funcionalidades com a ajuda da comunidade Python.
+
+Novos Requisitos Técnicos (Obrigatórios)
+RT1 - Estruturas de Dados com Dicionários: As listas paralelas ou listas de listas da Etapa 1 devem ser inteiramente substituídas por Dicionários (ou Listas de Dicionários).
+
+Exemplo obrigatório: O cadastro de um animal não pode ser solto; deve ser um dicionário como {'brinco': 102, 'tipo': 'Caprino', 'status': 'lactação', 'peso': 45.5}. O mesmo vale para o estoque de queijos e o cadastro de usuários.
+
+RT2 - Modularização (Funções e Arquivos Separados): O sistema não pode mais ser um único arquivo gigante. O código deve ser componentizado usando funções (def) e dividido em pelo menos três arquivos .py distintos.
+
+Sugestão de divisão: Um arquivo principal (main.py com o menu e laço principal), um módulo para gestão da fazenda (fazenda.py com as funções de estoque e rebanho) e um módulo para autenticação/usuários (auth.py). Pode fazer do seu jeito.
+
+RT3 - Uso de Pacotes Externos (Criatividade via pip install): O aluno deve instalar e utilizar pelo menos 2 (dois) pacotes externos que não venha na biblioteca padrão da linguagem, justificando o seu uso no projeto. Som, microfone, webcam, imagem, gráfico, etc: qualquer inovação é bem-vinda.
+
+---------------------------------------------
+Novos Requisitos Funcionais (Evolução)
+(Estes requisitos se somam aos da Etapa 1 e são perfeitos para forçar o uso dos pacotes externos e dicionários)
+
+R10 - Painel de Controle (Dashboard) do Administrador:
+O ADM deve ter uma opção para gerar um "Relatório Geral da Fazenda". Este relatório deve listar de forma organizada a quantidade de animais por tipo, o total de litros de leite e o estoque de queijos.
+
+Dica(Pacote Externo): Pode usar pacotes como tabulate ou rich para imprimir tabelas bonitas e coloridas no terminal, deixando o relatório com cara de sistema profissional.
+
+R11 - Recibo de Compra Detalhado (CLIENTE):
+Quando o cliente agendar a retirada (antigo R6), o sistema deve gerar um "Recibo/Ticket de Carga" no terminal mostrando os dados do cliente, os itens comprados (puxando dos dicionários) e a data do agendamento.
+
+Dica para o aluno (Pacote Externo): Pacotes como fpdf ou reportlab podem gerar esse recibo direto em um arquivo PDF, ou bibliotecas de interface podem exibir isso de forma destacada no terminal.
+
+R12 - Módulo de Logística ou Clima (Tema Livre com API - Opcional/Diferencial):
+Para enriquecer a gestão da fazenda ou a logística de transporte do cliente, implementar uma funcionalidade que puxe dados reais da internet.
+
+Dica para o aluno (Pacote Externo): Usar a biblioteca requests para buscar a previsão do tempo na região antes de agendar o frete do leite, ou usar uma API de CEP para preencher o endereço do laticínio automaticamente.
+
+R13 - Histórico de Movimentação:
+Sempre que o estoque for alterado (seja por nova produção do ADM ou compra do CLIENTE), registrar essa movimentação em um dicionário de "histórico" (Ex: {'data': '10/06', 'acao': 'venda', 'item': 'Queijo Coalho', 'qtd': 5}). O administrador deve ter um menu para consultar este histórico.
