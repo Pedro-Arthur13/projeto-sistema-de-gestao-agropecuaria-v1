@@ -40,3 +40,4 @@ python main.py
 
 - Data de retirada: formato DD/MM/AAAA, nao anterior a 11/05/2026 e nao retroativa em relacao ao momento atual
 - CEP: 8 digitos numericos, consulta ViaCEP quando disponivel
+

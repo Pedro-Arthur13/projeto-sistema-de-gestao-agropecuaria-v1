@@ -1,7 +1,13 @@
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
+
 *.db
+fazenda_sertao.db
+*.sqlite
+*.sqlite3
+
 .Python
 .venv/
 venv/
@@ -19,3 +25,4 @@ Thumbs.db
 *.log
 *.tmp
 *.swp
+.cursor/
