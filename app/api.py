@@ -80,9 +80,9 @@ def buscar_previsao_tempo(uf, data_str, hora_str):
 
 def _gerar_alerta(prob_chuva, wcode):
     if wcode >= 95 or prob_chuva >= 80:
-        return "TEMPESTADE/CHUVA INTENSA — Recomendado reagendar a retirada."
+        return "TEMPESTADE/CHUVA INTENSA - Recomendado reagendar a retirada."
     if prob_chuva >= 50:
-        return "CHUVA PROVAVEL — Considere reagendar a retirada."
+        return "CHUVA PROVAVEL - Considere reagendar a retirada."
     if prob_chuva >= 20:
-        return "POSSIBILIDADE DE CHUVA — Esteja preparado."
+        return "POSSIBILIDADE DE CHUVA - Esteja preparado."
     return ""

@@ -1,5 +1,15 @@
+import unicodedata
 from datetime import datetime
 from config.settings import DATA_INICIO_SISTEMA
+
+
+def texto_pdf(texto):
+    if texto is None:
+        return ""
+    s = str(texto)
+    s = s.replace("\u2014", " - ").replace("\u2013", "-").replace("\u2022", "*")
+    s = unicodedata.normalize("NFKD", s)
+    return s.encode("ascii", "ignore").decode("ascii")
 
 
 def timestamp_agora():
