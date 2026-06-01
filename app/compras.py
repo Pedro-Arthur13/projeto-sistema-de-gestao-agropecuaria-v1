@@ -1,4 +1,4 @@
-from persistence.database import buscar_um, buscar_todos, inserir, atualizar
+from persistence.memoria import buscar_um, buscar_todos, inserir, atualizar, COMPRAS, AGENDAMENTOS
 from app.utils import validar_float_positivo, validar_data_hora, validar_cep, timestamp_agora
 from app.api import buscar_endereco_por_cep, buscar_previsao_tempo
 from config.settings import STATUS_ANIMAL_VENDA, STATUS_ANIMAL_VENDIDO, RECIBOS_DIR
@@ -224,3 +224,11 @@ def historico_compras_cliente(cliente_email):
 
 def historico_agendamentos_cliente(cliente_email):
     return buscar_todos("agendamentos", ["cliente"], [cliente_email], ordem="id DESC")
+
+
+def obter_lista_compras():
+    return COMPRAS
+
+
+def obter_lista_agendamentos():
+    return AGENDAMENTOS

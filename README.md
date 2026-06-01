@@ -7,7 +7,8 @@ Sistema procedural modular para gestao de fazenda, com persistencia SQLite, dash
 ```
 main.py                 # menu principal
 config/settings.py      # constantes e permissoes
-persistence/database.py # sqlite3 e schema
+persistence/memoria.py  # listas de dicionarios em RAM (runtime)
+persistence/database.py # sqlite3 (persistencia ao disco)
 app/
   auth.py               # login, usuarios, SUPERUSUARIO
   fazenda.py            # rebanho, leite, produtos
@@ -17,6 +18,14 @@ app/
   pdf.py                # recibos fpdf2
   utils.py              # validacoes centralizadas
 ```
+
+## Dados em memoria (RT1)
+
+Ao iniciar, o SQLite carrega tudo para listas de dicionarios em `persistence/memoria.py`:
+
+- `USUARIOS`, `ANIMAIS`, `PRODUTOS`, `ESTOQUE_LEITE`, `COMPRAS`, `AGENDAMENTOS`, etc.
+- Sets auxiliares: `EMAILS_USUARIOS`, `IDS_ANIMAIS`
+- Toda operacao le/escreve primeiro na memoria; o banco e atualizado em seguida
 
 ## Instalacao
 

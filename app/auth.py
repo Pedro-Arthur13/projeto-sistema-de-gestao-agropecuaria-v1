@@ -1,6 +1,7 @@
-from persistence.database import (
+from persistence.memoria import (
     buscar_um, buscar_todos, inserir, atualizar,
     soft_delete, restaurar, deletar_permanente,
+    USUARIOS, EMAILS_USUARIOS,
 )
 from app.utils import validar_email, gerar_prefixo, timestamp_agora
 from config.settings import PERMISSOES
@@ -13,7 +14,7 @@ def login(email, senha):
 def cadastrar_usuario(nome, email, senha, tipo, solicitante=None):
     if not validar_email(email):
         return False, "E-mail inválido (formato esperado: algo@algo.algo)."
-    if buscar_um("usuarios", ["email"], [email]):
+    if email in EMAILS_USUARIOS or buscar_um("usuarios", ["email"], [email]):
         return False, "E-mail já cadastrado."
     if tipo not in ("ADM", "CLIENTE", "SUPERUSUARIO"):
         return False, "Tipo inválido."
@@ -41,6 +42,10 @@ def listar_usuarios(tipo_filtro=None):
     if tipo_filtro:
         return buscar_todos("usuarios", ["tipo", "ativo"], [tipo_filtro, 1])
     return buscar_todos("usuarios", ["ativo"], [1])
+
+
+def obter_lista_usuarios():
+    return USUARIOS
 
 
 def promover_usuario(email_alvo, novo_tipo, solicitante):

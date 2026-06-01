@@ -1,4 +1,7 @@
-from persistence.database import buscar_um, buscar_todos, inserir, atualizar, soft_delete
+from persistence.memoria import (
+    buscar_um, buscar_todos, inserir, atualizar, soft_delete,
+    ANIMAIS, PRODUTOS, ESTOQUE_LEITE, IDS_ANIMAIS,
+)
 from app.utils import (
     validar_float_positivo,
     validar_inteiro_positivo,
@@ -24,7 +27,7 @@ def cadastrar_animal(tipo_raw, id_bruto, peso_str, preco_str, status_raw, adm):
     if not tipo:
         return False, "Tipo de animal inválido."
     animal_id = adm["prefixo"] + id_bruto
-    if buscar_um("animais", ["id"], [animal_id]):
+    if animal_id in IDS_ANIMAIS or buscar_um("animais", ["id"], [animal_id]):
         return False, "Já existe um animal com este ID."
     if not validar_float_positivo(peso_str):
         return False, "Peso inválido."
@@ -156,3 +159,15 @@ def obter_estoque_leite_adm(adm):
 
 def listar_todo_estoque_leite():
     return buscar_todos("estoque_leite", ["ativo"], [1])
+
+
+def obter_lista_animais():
+    return ANIMAIS
+
+
+def obter_lista_produtos():
+    return PRODUTOS
+
+
+def obter_lista_estoque_leite():
+    return ESTOQUE_LEITE

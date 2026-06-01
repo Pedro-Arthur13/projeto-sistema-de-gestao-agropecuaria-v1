@@ -6,7 +6,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from persistence.database import buscar_todos, buscar_um, inserir
+from persistence.memoria import buscar_todos, buscar_um, inserir
 from app.utils import separador, timestamp_agora, texto_pdf
 from config.settings import GRAFICOS_DIR, EXPORTS_DIR, SYSTEM_NAME
 

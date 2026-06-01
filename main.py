@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from persistence.database import inicializar_banco
+from persistence.memoria import inicializar_sistema
 from app.utils import separador, pausar
 from config.settings import SYSTEM_NAME, SYSTEM_VERSION
 from app import auth, fazenda, compras as compras_mod, dashboard as dash
@@ -448,7 +448,7 @@ def menu_principal_deslogado():
 
 
 def main():
-    inicializar_banco()
+    inicializar_sistema()
     while True:
         u = usuario_logado()
         if u is None:
