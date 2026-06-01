@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from persistence.database import buscar_todos, buscar_um, inserir
-from app.utils import separador, timestamp_agora
+from app.utils import separador, timestamp_agora, texto_pdf
 from config.settings import GRAFICOS_DIR, EXPORTS_DIR, SYSTEM_NAME
 
 
@@ -26,6 +26,33 @@ def _registrar_exportacao(tipo, formato, caminho, usuario_email):
     })
 
 
+def _escrever_csv(caminho, registros):
+    with open(caminho, "w", newline="", encoding="utf-8") as f:
+        if not registros:
+            f.write("")
+            return
+        fieldnames = list(registros[0].keys())
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(registros)
+
+
+def _grafico_barras(chaves, valores, titulo, eixo_x, eixo_y, palette_nome, caminho):
+    sns.set_theme(style="whitegrid")
+    fig, ax = plt.subplots(figsize=(7, 4))
+    cores = sns.color_palette(palette_nome, max(len(chaves), 1))
+    ax.bar(chaves, valores, color=cores)
+    ax.set_title(titulo)
+    ax.set_xlabel(eixo_x)
+    ax.set_ylabel(eixo_y)
+    if len(chaves) > 4:
+        ax.tick_params(axis="x", rotation=45)
+    plt.tight_layout()
+    fig.savefig(caminho, dpi=120)
+    plt.close(fig)
+    return caminho
+
+
 def _gerar_grafico_animais_por_tipo(animais, prefixo_arquivo):
     _garantir_diretorios()
     contagem = {}
@@ -35,17 +62,11 @@ def _gerar_grafico_animais_por_tipo(animais, prefixo_arquivo):
         print("  Sem dados de animais para grafico.")
         return None
 
-    sns.set_theme(style="whitegrid")
-    fig, ax = plt.subplots(figsize=(7, 4))
-    sns.barplot(x=list(contagem.keys()), y=list(contagem.values()), palette="viridis", ax=ax)
-    ax.set_title("Distribuicao de Animais por Tipo")
-    ax.set_xlabel("Tipo")
-    ax.set_ylabel("Quantidade")
-    plt.tight_layout()
     caminho = os.path.join(GRAFICOS_DIR, f"{prefixo_arquivo}_animais.png")
-    fig.savefig(caminho, dpi=120)
-    plt.close(fig)
-    return caminho
+    return _grafico_barras(
+        list(contagem.keys()), list(contagem.values()),
+        "Distribuicao de Animais por Tipo", "Tipo", "Quantidade", "viridis", caminho,
+    )
 
 
 def _gerar_grafico_vendas(compras, prefixo_arquivo):
@@ -57,17 +78,11 @@ def _gerar_grafico_vendas(compras, prefixo_arquivo):
         print("  Sem dados de vendas para grafico.")
         return None
 
-    sns.set_theme(style="whitegrid")
-    fig, ax = plt.subplots(figsize=(7, 4))
-    sns.barplot(x=list(contagem.keys()), y=list(contagem.values()), palette="rocket", ax=ax)
-    ax.set_title("Receita por Categoria")
-    ax.set_xlabel("Categoria")
-    ax.set_ylabel("Receita (R$)")
-    plt.tight_layout()
     caminho = os.path.join(GRAFICOS_DIR, f"{prefixo_arquivo}_vendas.png")
-    fig.savefig(caminho, dpi=120)
-    plt.close(fig)
-    return caminho
+    return _grafico_barras(
+        list(contagem.keys()), list(contagem.values()),
+        "Receita por Categoria", "Categoria", "Receita (R$)", "rocket", caminho,
+    )
 
 
 def _gerar_grafico_estoque_leite(estoques, prefixo_arquivo):
@@ -78,17 +93,8 @@ def _gerar_grafico_estoque_leite(estoques, prefixo_arquivo):
     emails = [e["adm_email"].split("@")[0] for e in estoques]
     litros = [e["litros"] for e in estoques]
 
-    sns.set_theme(style="whitegrid")
-    fig, ax = plt.subplots(figsize=(7, 4))
-    sns.barplot(x=emails, y=litros, palette="mako", ax=ax)
-    ax.set_title("Estoque de Leite por ADM")
-    ax.set_xlabel("ADM")
-    ax.set_ylabel("Litros")
-    plt.tight_layout()
     caminho = os.path.join(GRAFICOS_DIR, f"{prefixo_arquivo}_leite.png")
-    fig.savefig(caminho, dpi=120)
-    plt.close(fig)
-    return caminho
+    return _grafico_barras(emails, litros, "Estoque de Leite por ADM", "ADM", "Litros", "mako", caminho)
 
 
 def _gerar_grafico_movimentacoes(historico, prefixo_arquivo):
@@ -99,16 +105,11 @@ def _gerar_grafico_movimentacoes(historico, prefixo_arquivo):
     for h in historico:
         contagem[h["acao"]] = contagem.get(h["acao"], 0) + 1
 
-    sns.set_theme(style="whitegrid")
-    fig, ax = plt.subplots(figsize=(8, 4))
-    sns.barplot(x=list(contagem.keys()), y=list(contagem.values()), palette="flare", ax=ax)
-    ax.set_title("Movimentacoes por Acao")
-    ax.tick_params(axis="x", rotation=45)
-    plt.tight_layout()
     caminho = os.path.join(GRAFICOS_DIR, f"{prefixo_arquivo}_movimentacoes.png")
-    fig.savefig(caminho, dpi=120)
-    plt.close(fig)
-    return caminho
+    return _grafico_barras(
+        list(contagem.keys()), list(contagem.values()),
+        "Movimentacoes por Acao", "Acao", "Quantidade", "flare", caminho,
+    )
 
 
 def dashboard_adm(adm):
@@ -205,18 +206,12 @@ def exportar_dashboard_adm(adm, formato):
 
     if formato in ("csv", "todos"):
         caminho_csv = os.path.join(EXPORTS_DIR, f"{prefixo}_compras.csv")
-        with open(caminho_csv, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=["id", "cliente", "tipo", "item", "quantidade", "preco_unitario", "vendedor"])
-            writer.writeheader()
-            writer.writerows(compras)
+        _escrever_csv(caminho_csv, compras)
         arquivos.append(caminho_csv)
         _registrar_exportacao("dashboard_adm", "csv", caminho_csv, adm["email"])
 
         caminho_csv2 = os.path.join(EXPORTS_DIR, f"{prefixo}_animais.csv")
-        with open(caminho_csv2, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=["id", "tipo", "peso", "preco_venda", "status", "adm_email"])
-            writer.writeheader()
-            writer.writerows(animais)
+        _escrever_csv(caminho_csv2, animais)
         arquivos.append(caminho_csv2)
         _registrar_exportacao("dashboard_adm", "csv", caminho_csv2, adm["email"])
 
@@ -236,38 +231,42 @@ def _exportar_pdf_adm(adm, animais, compras, estoques, produtos, caminho):
     p = FPDF()
     p.add_page()
     p.set_font("Helvetica", "B", 14)
-    p.cell(0, 10, f"{SYSTEM_NAME} — Relatorio ADM", ln=True, align="C")
+
+    def cel(largura, altura, conteudo, **kwargs):
+        p.cell(largura, altura, texto_pdf(conteudo), **kwargs)
+
+    cel(0, 10, f"{SYSTEM_NAME} - Relatorio ADM", ln=True, align="C")
     p.set_font("Helvetica", "", 10)
-    p.cell(0, 6, f"ADM: {adm['nome']} ({adm['email']})", ln=True)
-    p.cell(0, 6, f"Gerado em: {timestamp_agora()}", ln=True)
+    cel(0, 6, f"ADM: {adm['nome']} ({adm['email']})", ln=True)
+    cel(0, 6, f"Gerado em: {timestamp_agora()}", ln=True)
     p.ln(4)
 
     p.set_font("Helvetica", "B", 11)
-    p.cell(0, 8, "Animais", ln=True)
+    cel(0, 8, "Animais", ln=True)
     p.set_font("Helvetica", "", 10)
     for a in animais:
-        p.cell(0, 6, f"  {a['id']} | {a['tipo']} | {a['peso']} kg | {a['status']}", ln=True)
+        cel(0, 6, f"  {a['id']} | {a['tipo']} | {a['peso']} kg | {a['status']}", ln=True)
 
     p.ln(3)
     p.set_font("Helvetica", "B", 11)
-    p.cell(0, 8, "Estoque de Leite", ln=True)
+    cel(0, 8, "Estoque de Leite", ln=True)
     p.set_font("Helvetica", "", 10)
     for e in estoques:
-        p.cell(0, 6, f"  {e['litros']:.2f} L a R$ {e['preco_litro']:.2f}/L", ln=True)
+        cel(0, 6, f"  {e['litros']:.2f} L a R$ {e['preco_litro']:.2f}/L", ln=True)
 
     p.ln(3)
     p.set_font("Helvetica", "B", 11)
-    p.cell(0, 8, "Produtos", ln=True)
+    cel(0, 8, "Produtos", ln=True)
     p.set_font("Helvetica", "", 10)
     for pr in produtos:
-        p.cell(0, 6, f"  {pr['nome']} | {pr['peso_total']:.2f} kg | R$ {pr['preco_kg']:.2f}/kg", ln=True)
+        cel(0, 6, f"  {pr['nome']} | {pr['peso_total']:.2f} kg | R$ {pr['preco_kg']:.2f}/kg", ln=True)
 
     p.ln(3)
     p.set_font("Helvetica", "B", 11)
-    p.cell(0, 8, "Vendas", ln=True)
+    cel(0, 8, "Vendas", ln=True)
     p.set_font("Helvetica", "", 10)
     receita = sum(c["quantidade"] * c["preco_unitario"] for c in compras)
-    p.cell(0, 6, f"  Total de vendas: {len(compras)}  |  Receita: R$ {receita:.2f}", ln=True)
+    cel(0, 6, f"  Total de vendas: {len(compras)}  |  Receita: R$ {receita:.2f}", ln=True)
 
     p.output(caminho)
 
@@ -296,13 +295,10 @@ def exportar_dashboard_global(superusuario, formato):
                 _registrar_exportacao("dashboard_global", "png", g, superusuario["email"])
 
     if formato in ("csv", "todos"):
-        for nome, dados in [("compras", compras), ("animais", animais)]:
-            if dados:
-                caminho_csv = os.path.join(EXPORTS_DIR, f"{prefixo}_{nome}.csv")
-                with open(caminho_csv, "w", newline="", encoding="utf-8") as f:
-                    writer = csv.DictWriter(f, fieldnames=list(dados[0].keys()))
-                    writer.writeheader()
-                    writer.writerows(dados)
+        for nome, dados in [("compras", compras), ("animais", animais), ("estoques", estoques)]:
+            caminho_csv = os.path.join(EXPORTS_DIR, f"{prefixo}_{nome}.csv")
+            _escrever_csv(caminho_csv, dados)
+            if dados or os.path.exists(caminho_csv):
                 arquivos.append(caminho_csv)
                 _registrar_exportacao("dashboard_global", "csv", caminho_csv, superusuario["email"])
 
